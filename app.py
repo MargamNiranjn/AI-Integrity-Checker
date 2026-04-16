@@ -10,6 +10,7 @@ from utils.ai_detector import calculate_ai_percentage, calculate_media_ai_percen
 from utils.cyber_analyzer import full_analysis
 from utils.ctf_generator import build_ctf_challenge
 from utils.steg_analyzer import advanced_steganalysis
+from utils.auto_ctf_generator import detect_input_type, generate_crypto_ctf, generate_puzzle_ctf, generate_stego_ctf
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -100,6 +101,14 @@ def cyber_analyze():
     try:
         result = full_analysis(text)
         result['success'] = True
+        
+        # Auto CTF Generation Integration
+        input_type = detect_input_type(text, None)
+        if input_type == 'crypto':
+            result['auto_ctf'] = generate_crypto_ctf(text)
+        elif input_type == 'puzzle':
+            result['auto_ctf'] = generate_puzzle_ctf(text)
+            
         return jsonify(result)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -291,6 +300,27 @@ def generate_ctf():
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/auto-ctf', methods=['POST'])
+def auto_ctf():
+    text = request.form.get('text')
+    file = request.files.get('file')
+    
+    input_type = detect_input_type(text, file)
+    
+    if input_type == 'image' and file:
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(file_path)
+        ctf_data = generate_stego_ctf(file_path)
+        return jsonify(ctf_data)
+    elif input_type == 'crypto':
+        ctf_data = generate_crypto_ctf(text)
+        return jsonify(ctf_data)
+    elif input_type == 'puzzle':
+        ctf_data = generate_puzzle_ctf(text)
+        return jsonify(ctf_data)
+        
+    return jsonify({"error": "Invalid input"}), 400
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
