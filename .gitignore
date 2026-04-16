@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+venv2/
+env/
+.env/
+
+# Database files
+*.sqlite3
+*.db
+database.db
+
+# Flask uploaded files and logs
+uploads/
+*.log
+flask_out.log
+flask_err.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
